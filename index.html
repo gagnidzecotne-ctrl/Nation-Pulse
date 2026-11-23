@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>World Sovereign Nations Explorer (195 Countries)</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+      --accent-hover: #0284c7;
+      --nato-blue: #2563eb;
+      --border-color: #475569;
+      --shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+    }
+    .light-theme {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-card: #f1f5f9;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent-blue: #0284c7;
+      --accent-hover: #0369a1;
+      --nato-blue: #1d4ed8;
+      --border-color: #cbd5e1;
+      --shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background 0.2s, color 0.2s; }
+    body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; padding: 20px; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    
+    /* Header */
+    header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo i { font-size: 2rem; color: var(--accent-blue); }
+    .logo h1 { font-size: 1.8rem; font-weight: 700; }
+    .header-actions { display: flex; gap: 12px; align-items: center; }
+    .btn { background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+    .btn:hover { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+
+    /* Summary Bar */
+    .summary-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1rem)); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; text-align: center; }
+    .stat-card h3 { font-size: 1.4rem; color: var(--accent-blue); }
+    .stat-card p { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Filters Section */
+    .filters-wrapper { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; margin-bottom: 24px; }
+    .main-controls { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+    @media (max-width: 900px) { .main-controls { grid-template-columns: 1fr; } }
+    .search-input, select { background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 14px; border-radius: 8px; font-size: 0.95rem; outline: none; width: 100%; }
+    .quick-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-color); font-size: 0.85rem; cursor: pointer; background: var(--bg-primary); }
+    .chip.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+    .chip-nato.active { background: var(--nato-blue); border-color: var(--nato-blue); }
+
+    /* Layout & Cards */
+    .view-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .countries-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+    .country-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; cursor: pointer; position: relative; display: flex; flex-direction: column; }
+    .country-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--accent-blue); }
+    .flag-box { height: 140px; background: #000; overflow: hidden; position: relative; border-bottom: 1px solid var(--border-color); }
+    .flag-box img { width: 100%; height: 100%; object-fit: cover; }
+    .nato-badge { position: absolute; top: 8px; right: 8px; background: var(--nato-blue); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+    .card-info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .card-info h2 { font-size: 1.1rem; margin-bottom: 8px; }
+    .card-info p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; }
+    .card-info strong { color: var(--text-main); }
+
+    /* Table View */
+    .countries-table { width: 100%; border-collapse: collapse; background: var(--bg-secondary); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); }
+    .countries-table th, .countries-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
+    .countries-table th { background: var(--bg-card); color: var(--accent-blue); font-weight: 600; }
+    .countries-table tr:hover { background: var(--bg-card); cursor: pointer; }
+    .table-flag { width: 36px; height: 24px; object-fit: cover; border-radius: 3px; vertical-align: middle; margin-right: 8px; }
+
+    /* Pagination */
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 30px; }
+    .page-btn { padding: 8px 12px; border-radius: 6px; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; backdrop-filter: blur(4px); }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: var(--shadow); }
+    .modal-close { position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.5); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .modal-hero { height: 200px; width: 100%; position: relative; }
+    .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
+    .modal-body { padding: 24px; }
+    .modal-title { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    @media (max-width: 600px) { .modal-grid { grid-template-columns: 1fr; } }
+    .modal-detail-item { background: var(--bg-primary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
+    .modal-detail-item label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px; }
+    .modal-detail-item span { font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="logo">
+        <i class="fa-solid fa-earth-americas"></i>
+        <div>
+          <h1>Global Nations Directory</h1>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Comprehensive Sovereign Database (195 Nations)</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn" id="themeToggleBtn"><i class="fa-solid fa-moon"></i> Toggle Theme</button>
+      </div>
+    </header>
+
+    <!-- Summary Statistics -->
+    <div class="summary-bar">
+      <div class="stat-card"><h3 id="statTotal">195</h3><p>Total Sovereign States</p></div>
+      <div class="stat-card"><h3 id="statEurope">44</h3><p>Europe</p></div>
+      <div class="stat-card"><h3 id="statAfrica">54</h3><p>Africa</p></div>
+      <div class="stat-card"><h3 id="statAsia">48</h3><p>Asia</p></div>
+      <div class="stat-card"><h3 id="statAmericas">35</h3><p>Americas</p></div>
+      <div class="stat-card"><h3 id="statOceania">14</h3><p>Oceania</p></div>
+      <div class="stat-card"><h3 id="statNato" style="color: #60a5fa;">32</h3><p>NATO Members</p></div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="filters-wrapper">
+      <div class="main-controls">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search country name, capital, or code...">
+        <select id="regionFilter">
+          <option value="All">All Continents (195)</option>
+          <option value="Europe">Europe (44)</option>
+          <option value="Africa">Africa (54)</option>
+          <option value="Asia">Asia (48)</option>
+          <option value="Americas">Americas (35)</option>
+          <option value="Oceania">Oceania (14)</option>
+        </select>
+        <select id="sortBy">
+          <option value="name-asc">Sort Name (A-Z)</option>
+          <option value="name-desc">Sort Name (Z-A)</option>
+          <option value="pop-desc">Population (High-Low)</option>
+          <option value="area-desc">Area (Largest First)</option>
+        </select>
+        <select id="pageSize">
+          <option value="24">24 Per Page</option>
+          <option value="48">48 Per Page</option>
+          <option value="195">Show All (195)</option>
+        </select>
+      </div>
+      <div class="quick-chips">
+        <div class="chip chip-nato" id="natoChip"><i class="fa-solid fa-shield-halved"></i> NATO Members (32)</div>
+        <div class="chip" id="unChip"><i class="fa-solid fa-landmark"></i> UN Members (193)</div>
+        <div class="chip" id="landlockedChip"><i class="fa-solid fa-mountain"></i> Landlocked</div>
+        <div class="chip" id="resetChip"><i class="fa-solid fa-rotate-left"></i> Reset Filters</div>
+      </div>
+    </div>
+
+    <!-- Controls & View Mode -->
+    <div class="view-header">
+      <span id="resultsCount" style="color: var(--text-muted); font-size: 0.9rem;">Showing 195 countries</span>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn" id="gridViewBtn"><i class="fa-solid fa-border-all"></i> Grid</button>
+        <button class="btn" id="tableViewBtn"><i class="fa-solid fa-list"></i> Table</button>
+      </div>
+    </div>
+
+    <!-- Countries Display Area -->
+    <div id="gridContainer" class="countries-grid"></div>
+    <table id="tableContainer" class="countries-table" style="display: none;">
+      <thead>
+        <tr>
+          <th>Flag & Country</th>
+          <th>Capital</th>
+          <th>Continent</th>
+          <th>Population</th>
+          <th>Area (km²)</th>
+          <th>Alliances</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination" id="paginationControls">
+      <button class="page-btn" id="prevPageBtn"><i class="fa-solid fa-chevron-left"></i></button>
+      <span id="pageIndicator" style="font-size: 0.9rem; color: var(--text-muted);">Page 1 of 1</span>
+      <button class="page-btn" id="nextPageBtn"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal">
+      <button class="modal-close" id="modalCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+      <div class="modal-hero">
+        <img id="modalFlag" src="" alt="Flag">
+      </div>
+      <div class="modal-body">
+        <div class="modal-title">
+          <h2 id="modalName"></h2>
+          <span id="modalNatoBadge" class="nato-badge" style="position:static; display:none;"><i class="fa-solid fa-shield-halved"></i> NATO MEMBER</span>
+        </div>
+        <div class="modal-grid">
+          <div class="modal-detail-item"><label>Official Capital</label><span id="modalCapital">-</span></div>
+          <div class="modal-detail-item"><label>Continent / Region</label><span id="modalRegion">-</span></div>
+          <div class="modal-detail-item"><label>Estimated Population</label><span id="modalPopulation">-</span></div>
+          <div class="modal-detail-item"><label>Total Area</label><span id="modalArea">-</span></div>
+          <div class="modal-detail-item"><label>Primary Languages</label><span id="modalLanguages">-</span></div>
+          <div class="modal-detail-item"><label>Currency</label><span id="modalCurrency">-</span></div>
+          <div class="modal-detail-item"><label>ISO Codes</label><span id="modalIso">-</span></div>
+          <div class="modal-detail-item"><label>UN Status</label><span id="modalUnStatus">-</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 195 Sovereign Nations Dataset with ISO2 Codes for Flags
+    const countriesData = [
+      // EUROPE (44)
+      { name: "Albania", capital: "Tirana", region: "Europe", pop: 2775634, area: 28748, iso2: "al", nato: true, un: true, landlocked: false, lang: "Albanian", curr: "Lek (ALL)" },
+      { name: "Andorra", capital: "Andorra la Vella", region: "Europe", pop: 79824, area: 468, iso2: "ad", nato: false, un: true, landlocked: true, lang: "Catalan", curr: "Euro (EUR)" },
+      { name: "Armenia", capital: "Yerevan", region: "Europe", pop: 2780000, area: 29743, iso2: "am", nato: false, un: true, landlocked: true, lang: "Armenian", curr: "Dram (AMD)" },
+      { name: "Austria", capital: "Vienna", region: "Europe", pop: 9104772, area: 83871, iso2: "at", nato: false, un: true, landlocked: true, lang: "German", curr: "Euro (EUR)" },
+      { name: "Azerbaijan", capital: "Baku", region: "Europe", pop: 10140000, area: 86600, iso2: "az", nato: false, un: true, landlocked: true, lang: "Azerbaijani", curr: "Manat (AZN)" },
+      { name: "Belarus", capital: "Minsk", region: "Europe", pop: 9200000, area: 207600, iso2: "by", nato: false, un: true, landlocked: true, lang: "Belarusian, Russian", curr: "Rouble (BYN)" },
+      { name: "Belgium", capital: "Brussels", region: "Europe", pop: 11584008, area: 30528, iso2: "be", nato: true, un: true, landlocked: false, lang: "Dutch, French, German", curr: "Euro (EUR)" },
+      { name: "Bosnia and Herzegovina", capital: "Sarajevo", region: "Europe", pop: 3233526, area: 51197, iso2: "ba", nato: false, un: true, landlocked: false, lang: "Bosnian, Croatian, Serbian", curr: "Mark (BAM)" },
+      { name: "Bulgaria", capital: "Sofia", region: "Europe", pop: 6447710, area: 110879, iso2: "bg", nato: true, un: true, landlocked: false, lang: "Bulgarian", curr: "Lev (BGN)" },
+      { name: "Croatia", capital: "Zagreb", region: "Europe", pop: 3850894, area: 56594, iso2: "hr", nato: true, un: true, landlocked: false, lang: "Croatian", curr: "Euro (EUR)" },
+      { name: "Cyprus", capital: "Nicosia", region: "Europe", pop: 1251488, area: 9251, iso2: "cy", nato: false, un: true, landlocked: false, lang: "Greek, Turkish", curr: "Euro (EUR)" },
+      { name: "Czech Republic", capital: "Prague", region: "Europe", pop: 10512419, area: 78867, iso2: "cz", nato: true, un: true, landlocked: true, lang: "Czech", curr: "Koruna (CZK)" },
+      { name: "Denmark", capital: "Copenhagen", region: "Europe", pop: 5932654, area: 42933, iso2: "dk", nato: true, un: true, landlocked: false, lang: "Danish", curr: "Krone (DKK)" },
+      { name: "Estonia", capital: "Tallinn", region: "Europe", pop: 1365884, area: 45228, iso2: "ee", nato: true, un: true, landlocked: false, lang: "Estonian", curr: "Euro (EUR)" },
+      { name: "Finland", capital: "Helsinki", region: "Europe", pop: 5563970, area: 338145, iso2: "fi", nato: true, un: true, landlocked: false, lang: "Finnish, Swedish", curr: "Euro (EUR)" },
+      { name: "France", capital: "Paris", region: "Europe", pop: 68070000, area: 551695, iso2: "fr", nato: true, un: true, landlocked: false, lang: "French", curr: "Euro (EUR)" },
+      { name: "Georgia", capital: "Tbilisi", region: "Europe", pop: 3688600, area: 69700, iso2: "ge", nato: false, un: true, landlocked: false, lang: "Georgian", curr: "Lari (GEL)" },
+      { name: "Germany", capital: "Berlin", region: "Europe", pop: 84358845, area: 357022, iso2: "de", nato: true, un: true, landlocked: false, lang: "German", curr: "Euro (EUR)" },
+      { name: "Greece", capital: "Athens", region: "Europe", pop: 10482487, area: 131957, iso2: "gr", nato: true, un: true, landlocked: false, lang: "Greek", curr: "Euro (EUR)" },
+      { name: "Hungary", capital: "Budapest", region: "Europe", pop: 9597085, area: 93028, iso2: "hu", nato: true, un: true, landlocked: true, lang: "Hungarian", curr: "Forint (HUF)" },
+      { name: "Iceland", capital: "Reykjavik", region: "Europe", pop: 387758, area: 103000, iso2: "is", nato: true, un: true, landlocked: false, lang: "Icelandic", curr: "Krona (ISK)" },
+      { name: "Ireland", capital: "Dublin", region: "Europe", pop: 5123536, area: 70273, iso2: "ie", nato: false, un: true, landlocked: false, lang: "Irish, English", curr: "Euro (EUR)" },
+      { name: "Italy", capital: "Rome", region: "Europe", pop: 58850717, area: 301340, iso2: "it", nato: true, un: true, landlocked: false, lang: "Italian", curr: "Euro (EUR)" },
+      { name: "Kazakhstan", capital: "Astana", region: "Europe", pop: 19800000, area: 2724900, iso2: "kz", nato: false, un: true, landlocked: true, lang: "Kazakh, Russian", curr: "Tenge (KZT)" },
+      { name: "Latvia", capital: "Riga", region: "Europe", pop: 1883008, area: 64589, iso2: "lv", nato: true, un: true, landlocked: false, lang: "Latvian", curr: "Euro (EUR)" },
+      { name: "Liechtenstein", capital: "Vaduz", region: "Europe", pop: 39327, area: 160, iso2: "li", nato: false, un: true, landlocked: true, lang: "German", curr: "Swiss Franc (CHF)" },
+      { name: "Lithuania", capital: "Vilnius", region: "Europe", pop: 2857279, area: 65300, iso2: "lt", nato: true, un: true, landlocked: false, lang: "Lithuanian", curr: "Euro (EUR)" },
+      { name: "Luxembourg", capital: "Luxembourg City", region: "Europe", pop: 660809, area: 2586, iso2: "lu", nato: true, un: true, landlocked: true, lang: "Luxembourgish, French, German", curr: "Euro (EUR)" },
+      { name: "Malta", capital: "Valletta", region: "Europe", pop: 533286, area: 316, iso2: "mt", nato: false, un: true, landlocked: false, lang: "Maltese, English", curr: "Euro (EUR)" },
+      { name: "Moldova", capital: "Chisinau", region: "Europe", pop: 2538894, area: 33846, iso2: "md", nato: false, un: true, landlocked: true, lang: "Romanian", curr: "Leu (MDL)" },
+      { name: "Monaco", capital: "Monaco", region: "Europe", pop: 36686, area: 2, iso2: "mc", nato: false, un: true, landlocked: false, lang: "French", curr: "Euro (EUR)" },
+      { name: "Montenegro", capital: "Podgorica", region: "Europe", pop: 620739, area: 13812, iso2: "me", nato: true, un: true, landlocked: false, lang: "Montenegrin", curr: "Euro (EUR)" },
+      { name: "Netherlands", capital: "Amsterdam", region: "Europe", pop: 17811291, area: 41543, iso2: "nl", nato: true, un: true, landlocked: false, lang: "Dutch", curr: "Euro (EUR)" },
+      { name: "North Macedonia", capital: "Skopje", region: "Europe", pop: 1836713, area: 25713, iso2: "mk", nato: true, un: true, landlocked: true, lang: "Macedonian", curr: "Denar (MKD)" },
+      { name: "Norway", capital: "Oslo", region: "Europe", pop: 5488984, area: 385207, iso2: "no", nato: true, un: true, landlocked: false, lang: "Norwegian", curr: "Krone (NOK)" },
+      { name: "Poland", capital: "Warsaw", region: "Europe", pop: 36753736, area: 312696, iso2: "pl", nato: true, un: true, landlocked: false, lang: "Polish", curr: "Zloty (PLN)" },
+      { name: "Portugal", capital: "Lisbon", region: "Europe", pop: 10467322, area: 92212, iso2: "pt", nato: true, un: true, landlocked: false, lang: "Portuguese", curr: "Euro (EUR)" },
+      { name: "Romania", capital: "Bucharest", region: "Europe", pop: 19051562, area: 238391, iso2: "ro", nato: true, un: true, landlocked: false, lang: "Romanian", curr: "Leu (RON)" },
+      { name: "Russia", capital: "Moscow", region: "Europe", pop: 144444359, area: 17098242, iso2: "ru", nato: false, un: true, landlocked: false, lang: "Russian", curr: "Rouble (RUB)" },
+      { name: "San Marino", capital: "San Marino", region: "Europe", pop: 33660, area: 61, iso2: "sm", nato: false, un: true, landlocked: true, lang: "Italian", curr: "Euro (EUR)" },
+      { name: "Serbia", capital: "Belgrade", region: "Europe", pop: 6664449, area: 88361, iso2: "rs", nato: false, un: true, landlocked: true, lang: "Serbian", curr: "Dinar (RSD)" },
+      { name: "Slovakia", capital: "Bratislava", region: "Europe", pop: 5428792, area: 49037, iso2: "sk", nato: true, un: true, landlocked: true, lang: "Slovak", curr: "Euro (EUR)" },
+      { name: "Slovenia", capital: "Ljubljana", region: "Europe", pop: 2116972, area: 20273, iso2: "si", nato: true, un: true, landlocked: false, lang: "Slovenian", curr: "Euro (EUR)" },
+      { name: "Spain", capital: "Madrid", region: "Europe", pop: 48059777, area: 505992, iso2: "es", nato: true, un: true, landlocked: false, lang: "Spanish", curr: "Euro (EUR)" },
+      { name: "Sweden", capital: "Stockholm", region: "Europe", pop: 10549287, area: 450295, iso2: "se", nato: true, un: true, landlocked: false, lang: "Swedish", curr: "Krona (SEK)" },
+      { name: "Switzerland", capital: "Bern", region: "Europe", pop: 8814985, area: 41284, iso2: "ch", nato: false, un: true, landlocked: true, lang: "German, French, Italian, Romansh", curr: "Franc (CHF)" },
+      { name: "Turkey", capital: "Ankara", region: "Europe", pop: 85372377, area: 783562, iso2: "tr", nato: true, un: true, landlocked: false, lang: "Turkish", curr: "Lira (TRY)" },
+      { name: "Ukraine", capital: "Kyiv", region: "Europe", pop: 38000000, area: 603628, iso2: "ua", nato: false, un: true, landlocked: false, lang: "Ukrainian", curr: "Hryvnia (UAH)" },
+      { name: "United Kingdom", capital: "London", region: "Europe", pop: 67736802, area: 242495, iso2: "gb", nato: true, un: true, landlocked: false, lang: "English", curr: "Pound (GBP)" },
+      { name: "Vatican City", capital: "Vatican City", region: "Europe", pop: 518, area: 0.49, iso2: "va", nato: false, un: false, landlocked: true, lang: "Italian, Latin", curr: "Euro (EUR)" },
+
+      // AMERICAS (35)
+      { name: "Antigua and Barbuda", capital: "St. John's", region: "Americas", pop: 93763, area: 442, iso2: "ag", nato: false, un: true, landlocked: false, lang: "English", curr: "EC Dollar (XCD)" },
+      { name: "Argentina", capital: "Buenos Aires", region: "Americas", pop: 46044703, area: 2780400, iso2: "ar", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Peso (ARS)" },
+      { name: "Bahamas", capital: "Nassau", region: "Americas", pop: 409984, area: 13943, iso2: "bs", nato: false, un: true, landlocked: false, lang: "English", curr: "Bahamian Dollar (BSD)" },
+      { name: "Barbados", capital: "Bridgetown", region: "Americas", pop: 281998, area: 430, iso2: "bb", nato: false, un: true, landlocked: false, lang: "English", curr: "Barbadian Dollar (BBD)" },
+      { name: "Belize", capital: "Belmopan", region: "Americas", pop: 405272, area: 22966, iso2: "bz", nato: false, un: true, landlocked: false, lang: "English", curr: "Belize Dollar (BZD)" },
+      { name: "Bolivia", capital: "Sucre", region: "Americas", pop: 12224110, area: 1098581, iso2: "bo", nato: false, un: true, landlocked: true, lang: "Spanish, Quechua", curr: "Boliviano (BOB)" },
+      { name: "Brazil", capital: "Brasilia", region: "Americas", pop: 215313498, area: 8515767, iso2: "br", nato: false, un: true, landlocked: false, lang: "Portuguese", curr: "Real (BRL)" },
+      { name: "Canada", capital: "Ottawa", region: "Americas", pop: 38929902, area: 9984670, iso2: "ca", nato: true, un: true, landlocked: false, lang: "English, French", curr: "Canadian Dollar (CAD)" },
+      { name: "Chile", capital: "Santiago", region: "Americas", pop: 19603733, area: 756102, iso2: "cl", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Peso (CLP)" },
+      { name: "Colombia", capital: "Bogota", region: "Americas", pop: 51874024, area: 1141748, iso2: "co", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Peso (COP)" },
+      { name: "Costa Rica", capital: "San Jose", region: "Americas", pop: 5180829, area: 51100, iso2: "cr", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Colon (CRC)" },
+      { name: "Cuba", capital: "Havana", region: "Americas", pop: 11212191, area: 109884, iso2: "cu", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Peso (CUP)" },
+      { name: "Dominica", capital: "Roseau", region: "Americas", pop: 72737, area: 751, iso2: "dm", nato: false, un: true, landlocked: false, lang: "English", curr: "EC Dollar (XCD)" },
+      { name: "Dominican Republic", capital: "Santo Domingo", region: "Americas", pop: 11228821, area: 48671, iso2: "do", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Peso (DOP)" },
+      { name: "Ecuador", capital: "Quito", region: "Americas", pop: 18001000, area: 276841, iso2: "ec", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "US Dollar (USD)" },
+      { name: "El Salvador", capital: "San Salvador", region: "Americas", pop: 6336392, area: 21041, iso2: "sv", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "US Dollar (USD)" },
+      { name: "Grenada", capital: "St. George's", region: "Americas", pop: 125438, area: 344, iso2: "gd", nato: false, un: true, landlocked: false, lang: "English", curr: "EC Dollar (XCD)" },
+      { name: "Guatemala", capital: "Guatemala City", region: "Americas", pop: 17843908, area: 108889, iso2: "gt", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Quetzal (GTQ)" },
+      { name: "Guyana", capital: "Georgetown", region: "Americas", pop: 808726, area: 214969, iso2: "gy", nato: false, un: true, landlocked: false, lang: "English", curr: "Guyanese Dollar (GYD)" },
+      { name: "Haiti", capital: "Port-au-Prince", region: "Americas", pop: 11584996, area: 27750, iso2: "ht", nato: false, un: true, landlocked: false, lang: "French, Haitian Creole", curr: "Gourde (HTG)" },
+      { name: "Honduras", capital: "Tegucigalpa", region: "Americas", pop: 10432860, area: 112492, iso2: "hn", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Lempira (HNL)" },
+      { name: "Jamaica", capital: "Kingston", region: "Americas", pop: 2827372, area: 10991, iso2: "jm", nato: false, un: true, landlocked: false, lang: "English", curr: "Jamaican Dollar (JMD)" },
+      { name: "Mexico", capital: "Mexico City", region: "Americas", pop: 127504125, area: 1964375, iso2: "mx", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Peso (MXN)" },
+      { name: "Nicaragua", capital: "Managua", region: "Americas", pop: 6948392, area: 130373, iso2: "ni", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Cordoba (NIO)" },
+      { name: "Panama", capital: "Panama City", region: "Americas", pop: 4408581, area: 75417, iso2: "pa", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Balboa / USD" },
+      { name: "Paraguay", capital: "Asuncion", region: "Americas", pop: 6780744, area: 406752, iso2: "py", nato: false, un: true, landlocked: true, lang: "Spanish, Guarani", curr: "Guarani (PYG)" },
+      { name: "Peru", capital: "Lima", region: "Americas", pop: 34049588, area: 1285216, iso2: "pe", nato: false, un: true, landlocked: false, lang: "Spanish, Quechua", curr: "Sol (PEN)" },
+      { name: "Saint Kitts and Nevis", capital: "Basseterre", region: "Americas", pop: 47657, area: 261, iso2: "kn", nato: false, un: true, landlocked: false, lang: "English", curr: "EC Dollar (XCD)" },
+      { name: "Saint Lucia", capital: "Castries", region: "Americas", pop: 179857, area: 616, iso2: "lc", nato: false, un: true, landlocked: false, lang: "English", curr: "EC Dollar (XCD)" },
+      { name: "Saint Vincent and Grenadines", capital: "Kingstown", region: "Americas", pop: 103948, area: 389, iso2: "vc", nato: false, un: true, landlocked: false, lang: "English", curr: "EC Dollar (XCD)" },
+      { name: "Suriname", capital: "Paramaribo", region: "Americas", pop: 618040, area: 163820, iso2: "sr", nato: false, un: true, landlocked: false, lang: "Dutch", curr: "Surinamese Dollar" },
+      { name: "Trinidad and Tobago", capital: "Port of Spain", region: "Americas", pop: 1531044, area: 5130, iso2: "tt", nato: false, un: true, landlocked: false, lang: "English", curr: "TT Dollar (TTD)" },
+      { name: "United States", capital: "Washington, D.C.", region: "Americas", pop: 333287557, area: 9833517, iso2: "us", nato: true, un: true, landlocked: false, lang: "English", curr: "US Dollar (USD)" },
+      { name: "Uruguay", capital: "Montevideo", region: "Americas", pop: 3422794, area: 176215, iso2: "uy", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Peso (UYU)" },
+      { name: "Venezuela", capital: "Caracas", region: "Americas", pop: 28301696, area: 916445, iso2: "ve", nato: false, un: true, landlocked: false, lang: "Spanish", curr: "Bolivar (VES)" },
+
+      // AFRICA (54)
+      { name: "Algeria", capital: "Algiers", region: "Africa", pop: 44900000, area: 2381741, iso2: "dz", nato: false, un: true, landlocked: false, lang: "Arabic, Berber", curr: "Dinar (DZD)" },
+      { name: "Angola", capital: "Luanda", region: "Africa", pop: 35588987, area: 1246700, iso2: "ao", nato: false, un: true, landlocked: false, lang: "Portuguese", curr: "Kwanza (AOA)" },
+      { name: "Benin", capital: "Porto-Novo", region: "Africa", pop: 13352864, area: 112622, iso2: "bj", nato: false, un: true, landlocked: false, lang: "French", curr: "CFA Franc (XOF)" },
+      { name: "Botswana", capital: "Gaborone", region: "Africa", pop: 2630296, area: 581730, iso2: "bw", nato: false, un: true, landlocked: true, lang: "English, Setswana", curr: "Pula (BWP)" },
+      { name: "Burkina Faso", capital: "Ouagadougou", region: "Africa", pop: 22673762, area: 274200, iso2: "bf", nato: false, un: true, landlocked: true, lang: "French", curr: "CFA Franc (XOF)" },
+      { name: "Burundi", capital: "Gitega", region: "Africa", pop: 12889576, area: 27830, iso2: "bi", nato: false, un: true, landlocked: true, lang: "Kirundi, French", curr: "Franc (BIF)" },
+      { name: "Cabo Verde", capital: "Praia", region: "Africa", pop: 593149, area: 4033, iso2: "cv", nato: false, un: true, landlocked: false, lang: "Portuguese", curr: "Escudo (CVE)" },
+      { name: "Cameroon", capital: "Yaounde", region: "Africa", pop: 27914536, area: 475442, iso2: "cm", nato: false, un: true, landlocked: false, lang: "French, English", curr: "CFA Franc (XAF)" },
+      { name: "Central African Republic", capital: "Bangui", region: "Africa", pop: 5579144, area: 622984, iso2: "cf", nato: false, un: true, landlocked: true, lang: "Sango, French", curr: "CFA Franc (XAF)" },
+      { name: "Chad", capital: "N'Djamena", region: "Africa", pop: 17723315, area: 1284000, iso2: "td", nato: false, un: true, landlocked: true, lang: "French, Arabic", curr: "CFA Franc (XAF)" },
+      { name: "Comoros", capital: "Moroni", region: "Africa", pop: 836774, area: 2235, iso2: "km", nato: false, un: true, landlocked: false, lang: "Comorian, French", curr: "Franc (KMF)" },
+      { name: "Congo (Brazzaville)", capital: "Brazzaville", region: "Africa", pop: 5970000, area: 342000, iso2: "cg", nato: false, un: true, landlocked: false, lang: "French", curr: "CFA Franc (XAF)" },
+      { name: "DR Congo", capital: "Kinshasa", region: "Africa", pop: 99010000, area: 2344858, iso2: "cd", nato: false, un: true, landlocked: false, lang: "French", curr: "Franc (CDF)" },
+      { name: "Djibouti", capital: "Djibouti", region: "Africa", pop: 1120849, area: 23200, iso2: "dj", nato: false, un: true, landlocked: false, lang: "French, Arabic", curr: "Franc (DJF)" },
+      { name: "Egypt", capital: "Cairo", region: "Africa", pop: 110990103, area: 1002450, iso2: "eg", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Pound (EGP)" },
+      { name: "Equatorial Guinea", capital: "Malabo", region: "Africa", pop: 1674908, area: 28051, iso2: "gq", nato: false, un: true, landlocked: false, lang: "Spanish, French", curr: "CFA Franc (XAF)" },
+      { name: "Eritrea", capital: "Asmara", region: "Africa", pop: 3684032, area: 117600, iso2: "er", nato: false, un: true, landlocked: false, lang: "Tigrinya, Arabic", curr: "Nakfa (ERN)" },
+      { name: "Eswatini", capital: "Mbabane", region: "Africa", pop: 1201670, area: 17364, iso2: "sz", nato: false, un: true, landlocked: true, lang: "English, Swazi", curr: "Lilangeni (SZL)" },
+      { name: "Ethiopia", capital: "Addis Ababa", region: "Africa", pop: 123379924, area: 1104300, iso2: "et", nato: false, un: true, landlocked: true, lang: "Amharic", curr: "Birr (ETB)" },
+      { name: "Gabon", capital: "Libreville", region: "Africa", pop: 2388992, area: 267667, iso2: "ga", nato: false, un: true, landlocked: false, lang: "French", curr: "CFA Franc (XAF)" },
+      { name: "Gambia", capital: "Banjul", region: "Africa", pop: 2705992, area: 11295, iso2: "gm", nato: false, un: true, landlocked: false, lang: "English", curr: "Dalasi (GMD)" },
+      { name: "Ghana", capital: "Accra", region: "Africa", pop: 33475870, area: 238533, iso2: "gh", nato: false, un: true, landlocked: false, lang: "English", curr: "Cedi (GHS)" },
+      { name: "Guinea", capital: "Conakry", region: "Africa", pop: 13859341, area: 245857, iso2: "gn", nato: false, un: true, landlocked: false, lang: "French", curr: "Franc (GNF)" },
+      { name: "Guinea-Bissau", capital: "Bissau", region: "Africa", pop: 2105566, area: 36125, iso2: "gw", nato: false, un: true, landlocked: false, lang: "Portuguese", curr: "CFA Franc (XOF)" },
+      { name: "Ivory Coast", capital: "Yamoussoukro", region: "Africa", pop: 28160542, area: 322463, iso2: "ci", nato: false, un: true, landlocked: false, lang: "French", curr: "CFA Franc (XOF)" },
+      { name: "Kenya", capital: "Nairobi", region: "Africa", pop: 54027471, area: 580367, iso2: "ke", nato: false, un: true, landlocked: false, lang: "Swahili, English", curr: "Shilling (KES)" },
+      { name: "Lesotho", capital: "Maseru", region: "Africa", pop: 2305825, area: 30355, iso2: "ls", nato: false, un: true, landlocked: true, lang: "Sesotho, English", curr: "Loti (LSL)" },
+      { name: "Liberia", capital: "Monrovia", region: "Africa", pop: 5302681, area: 111369, iso2: "lr", nato: false, un: true, landlocked: false, lang: "English", curr: "Liberian Dollar" },
+      { name: "Libya", capital: "Tripoli", region: "Africa", pop: 6812341, area: 1759540, iso2: "ly", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Dinar (LYD)" },
+      { name: "Madagascar", capital: "Antananarivo", region: "Africa", pop: 29611714, area: 587041, iso2: "mg", nato: false, un: true, landlocked: false, lang: "Malagasy, French", curr: "Ariary (MGA)" },
+      { name: "Malawi", capital: "Lilongwe", region: "Africa", pop: 20405317, area: 118484, iso2: "mw", nato: false, un: true, landlocked: true, lang: "English, Chichewa", curr: "Kwacha (MWK)" },
+      { name: "Mali", capital: "Bamako", region: "Africa", pop: 22593590, area: 1240192, iso2: "ml", nato: false, un: true, landlocked: true, lang: "Bambara, French", curr: "CFA Franc (XOF)" },
+      { name: "Mauritania", capital: "Nouakchott", region: "Africa", pop: 4736139, area: 1030700, iso2: "mr", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Ouguiya (MRU)" },
+      { name: "Mauritius", capital: "Port Louis", region: "Africa", pop: 1262523, area: 2040, iso2: "mu", nato: false, un: true, landlocked: false, lang: "English, French", curr: "Rupee (MUR)" },
+      { name: "Morocco", capital: "Rabat", region: "Africa", pop: 37457971, area: 446550, iso2: "ma", nato: false, un: true, landlocked: false, lang: "Arabic, Berber", curr: "Dirham (MAD)" },
+      { name: "Mozambique", capital: "Maputo", region: "Africa", pop: 32969518, area: 801590, iso2: "mz", nato: false, un: true, landlocked: false, lang: "Portuguese", curr: "Metical (MZN)" },
+      { name: "Namibia", capital: "Windhoek", region: "Africa", pop: 2567012, area: 825615, iso2: "na", nato: false, un: true, landlocked: false, lang: "English", curr: "Namibian Dollar" },
+      { name: "Niger", capital: "Niamey", region: "Africa", pop: 26207977, area: 1267000, iso2: "ne", nato: false, un: true, landlocked: true, lang: "French", curr: "CFA Franc (XOF)" },
+      { name: "Nigeria", capital: "Abuja", region: "Africa", pop: 218541212, area: 923768, iso2: "ng", nato: false, un: true, landlocked: false, lang: "English", curr: "Naira (NGN)" },
+      { name: "Rwanda", capital: "Kigali", region: "Africa", pop: 13776698, area: 26338, iso2: "rw", nato: false, un: true, landlocked: true, lang: "Kinyarwanda, French", curr: "Franc (RWF)" },
+      { name: "Sao Tome and Principe", capital: "Sao Tome", region: "Africa", pop: 227380, area: 964, iso2: "st", nato: false, un: true, landlocked: false, lang: "Portuguese", curr: "Dobra (STN)" },
+      { name: "Senegal", capital: "Dakar", region: "Africa", pop: 17316449, area: 196722, iso2: "sn", nato: false, un: true, landlocked: false, lang: "French", curr: "CFA Franc (XOF)" },
+      { name: "Seychelles", capital: "Victoria", region: "Africa", pop: 107135, area: 452, iso2: "sc", nato: false, un: true, landlocked: false, lang: "Seychellois, English", curr: "Rupee (SCR)" },
+      { name: "Sierra Leone", capital: "Freetown", region: "Africa", pop: 8605718, area: 71740, iso2: "sl", nato: false, un: true, landlocked: false, lang: "English", curr: "Leone (SLE)" },
+      { name: "Somalia", capital: "Mogadishu", region: "Africa", pop: 17597511, area: 637657, iso2: "so", nato: false, un: true, landlocked: false, lang: "Somali, Arabic", curr: "Shilling (SOS)" },
+      { name: "South Africa", capital: "Pretoria", region: "Africa", pop: 59893885, area: 1221037, iso2: "za", nato: false, un: true, landlocked: false, lang: "Zulu, Xhosa, Afrikaans, English", curr: "Rand (ZAR)" },
+      { name: "South Sudan", capital: "Juba", region: "Africa", pop: 10913164, area: 619745, iso2: "ss", nato: false, un: true, landlocked: true, lang: "English", curr: "Pound (SSP)" },
+      { name: "Sudan", capital: "Khartoum", region: "Africa", pop: 46874204, area: 1886068, iso2: "sd", nato: false, un: true, landlocked: false, lang: "Arabic, English", curr: "Pound (SDG)" },
+      { name: "Tanzania", capital: "Dodoma", region: "Africa", pop: 65497748, area: 947303, iso2: "tz", nato: false, un: true, landlocked: false, lang: "Swahili, English", curr: "Shilling (TZS)" },
+      { name: "Togo", capital: "Lome", region: "Africa", pop: 8848696, area: 56785, iso2: "tg", nato: false, un: true, landlocked: false, lang: "French", curr: "CFA Franc (XOF)" },
+      { name: "Tunisia", capital: "Tunis", region: "Africa", pop: 12356117, area: 163610, iso2: "tn", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Dinar (TND)" },
+      { name: "Uganda", capital: "Kampala", region: "Africa", pop: 47249585, area: 241550, iso2: "ug", nato: false, un: true, landlocked: true, lang: "English, Swahili", curr: "Shilling (UGX)" },
+      { name: "Zambia", capital: "Lusaka", region: "Africa", pop: 20017675, area: 752612, iso2: "zm", nato: false, un: true, landlocked: true, lang: "English", curr: "Kwacha (ZMW)" },
+      { name: "Zimbabwe", capital: "Harare", region: "Africa", pop: 16320537, area: 390757, iso2: "zw", nato: false, un: true, landlocked: true, lang: "English, Shona, Ndebele", curr: "ZWG" },
+
+      // ASIA (48)
+      { name: "Afghanistan", capital: "Kabul", region: "Asia", pop: 41128771, area: 652230, iso2: "af", nato: false, un: true, landlocked: true, lang: "Pashto, Dari", curr: "Afghani (AFN)" },
+      { name: "Bahrain", capital: "Manama", region: "Asia", pop: 1472233, area: 765, iso2: "bh", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Dinar (BHD)" },
+      { name: "Bangladesh", capital: "Dhaka", region: "Asia", pop: 171186372, area: 147570, iso2: "bd", nato: false, un: true, landlocked: false, lang: "Bengali", curr: "Taka (BDT)" },
+      { name: "Bhutan", capital: "Thimphu", region: "Asia", pop: 782455, area: 38394, iso2: "bt", nato: false, un: true, landlocked: true, lang: "Dzongkha", curr: "Ngultrum (BTN)" },
+      { name: "Brunei", capital: "Bandar Seri Begawan", region: "Asia", pop: 449002, area: 5765, iso2: "bn", nato: false, un: true, landlocked: false, lang: "Malay", curr: "Brunei Dollar (BND)" },
+      { name: "Cambodia", capital: "Phnom Penh", region: "Asia", pop: 16767842, area: 181035, iso2: "kh", nato: false, un: true, landlocked: false, lang: "Khmer", curr: "Riel (KHR)" },
+      { name: "China", capital: "Beijing", region: "Asia", pop: 1411750000, area: 9596961, iso2: "cn", nato: false, un: true, landlocked: false, lang: "Mandarin", curr: "Yuan (CNY)" },
+      { name: "East Timor", capital: "Dili", region: "Asia", pop: 1341296, area: 14874, iso2: "tl", nato: false, un: true, landlocked: false, lang: "Tetum, Portuguese", curr: "US Dollar (USD)" },
+      { name: "India", capital: "New Delhi", region: "Asia", pop: 1428627663, area: 3287263, iso2: "in", nato: false, un: true, landlocked: false, lang: "Hindi, English", curr: "Rupee (INR)" },
+      { name: "Indonesia", capital: "Jakarta", region: "Asia", pop: 275501339, area: 1904569, iso2: "id", nato: false, un: true, landlocked: false, lang: "Indonesian", curr: "Rupiah (IDR)" },
+      { name: "Iran", capital: "Tehran", region: "Asia", pop: 88550570, area: 1648195, iso2: "ir", nato: false, un: true, landlocked: false, lang: "Persian", curr: "Rial (IRR)" },
+      { name: "Iraq", capital: "Baghdad", region: "Asia", pop: 44496122, area: 438317, iso2: "iq", nato: false, un: true, landlocked: false, lang: "Arabic, Kurdish", curr: "Dinar (IQD)" },
+      { name: "Israel", capital: "Jerusalem", region: "Asia", pop: 9558200, area: 20770, iso2: "il", nato: false, un: true, landlocked: false, lang: "Hebrew", curr: "Shekel (ILS)" },
+      { name: "Japan", capital: "Tokyo", region: "Asia", pop: 124630000, area: 377975, iso2: "jp", nato: false, un: true, landlocked: false, lang: "Japanese", curr: "Yen (JPY)" },
+      { name: "Jordan", capital: "Amman", region: "Asia", pop: 11285869, area: 89342, iso2: "jo", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Dinar (JOD)" },
+      { name: "Kuwait", capital: "Kuwait City", region: "Asia", pop: 4268873, area: 17818, iso2: "kw", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Dinar (KWD)" },
+      { name: "Kyrgyzstan", capital: "Bishkek", region: "Asia", pop: 6960000, area: 199951, iso2: "kg", nato: false, un: true, landlocked: true, lang: "Kyrgyz, Russian", curr: "Som (KGS)" },
+      { name: "Laos", capital: "Vientiane", region: "Asia", pop: 7529475, area: 236800, iso2: "la", nato: false, un: true, landlocked: true, lang: "Lao", curr: "Kip (LAK)" },
+      { name: "Lebanon", capital: "Beirut", region: "Asia", pop: 5489739, area: 10452, iso2: "lb", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Pound (LBP)" },
+      { name: "Malaysia", capital: "Kuala Lumpur", region: "Asia", pop: 33938221, area: 329847, iso2: "my", nato: false, un: true, landlocked: false, lang: "Malay", curr: "Ringgit (MYR)" },
+      { name: "Maldives", capital: "Male", region: "Asia", pop: 523787, area: 300, iso2: "mv", nato: false, un: true, landlocked: false, lang: "Dhivehi", curr: "Rufiyaa (MVR)" },
+      { name: "Mongolia", capital: "Ulaanbaatar", region: "Asia", pop: 3398300, area: 1564116, iso2: "mn", nato: false, un: true, landlocked: true, lang: "Mongolian", curr: "Tugrik (MNT)" },
+      { name: "Myanmar", capital: "Naypyidaw", region: "Asia", pop: 54179306, area: 676578, iso2: "mm", nato: false, un: true, landlocked: false, lang: "Burmese", curr: "Kyat (MMK)" },
+      { name: "Nepal", capital: "Kathmandu", region: "Asia", pop: 30547580, area: 147181, iso2: "np", nato: false, un: true, landlocked: true, lang: "Nepali", curr: "Rupee (NPR)" },
+      { name: "North Korea", capital: "Pyongyang", region: "Asia", pop: 26069416, area: 120538, iso2: "kp", nato: false, un: true, landlocked: false, lang: "Korean", curr: "Won (KPW)" },
+      { name: "Oman", capital: "Muscat", region: "Asia", pop: 4576298, area: 309500, iso2: "om", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Rial (OMR)" },
+      { name: "Pakistan", capital: "Islamabad", region: "Asia", pop: 235824862, area: 881912, iso2: "pk", nato: false, un: true, landlocked: false, lang: "Urdu, English", curr: "Rupee (PKR)" },
+      { name: "Palestine", capital: "Ramallah", region: "Asia", pop: 5043612, area: 6020, iso2: "ps", nato: false, un: false, landlocked: false, lang: "Arabic", curr: "ILS / JOD" },
+      { name: "Philippines", capital: "Manila", region: "Asia", pop: 115559009, area: 300000, iso2: "ph", nato: false, un: true, landlocked: false, lang: "Filipino, English", curr: "Peso (PHP)" },
+      { name: "Qatar", capital: "Doha", region: "Asia", pop: 2695122, area: 11586, iso2: "qa", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Riyal (QAR)" },
+      { name: "Saudi Arabia", capital: "Riyadh", region: "Asia", pop: 36408820, area: 2149690, iso2: "sa", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Riyal (SAR)" },
+      { name: "Singapore", capital: "Singapore", region: "Asia", pop: 5637000, area: 728, iso2: "sg", nato: false, un: true, landlocked: false, lang: "English, Malay, Mandarin", curr: "Dollar (SGD)" },
+      { name: "South Korea", capital: "Seoul", region: "Asia", pop: 51628117, area: 100210, iso2: "kr", nato: false, un: true, landlocked: false, lang: "Korean", curr: "Won (KRW)" },
+      { name: "Sri Lanka", capital: "Sri Jayawardenepura Kotte", region: "Asia", pop: 22181000, area: 65610, iso2: "lk", nato: false, un: true, landlocked: false, lang: "Sinhala, Tamil", curr: "Rupee (LKR)" },
+      { name: "Syria", capital: "Damascus", region: "Asia", pop: 22125249, area: 185180, iso2: "sy", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Pound (SYP)" },
+      { name: "Tajikistan", capital: "Dushanbe", region: "Asia", pop: 9952434, area: 143100, iso2: "tj", nato: false, un: true, landlocked: true, lang: "Tajik", curr: "Somoni (TJS)" },
+      { name: "Thailand", capital: "Bangkok", region: "Asia", pop: 71697030, area: 513120, iso2: "th", nato: false, un: true, landlocked: false, lang: "Thai", curr: "Baht (THB)" },
+      { name: "Turkmenistan", capital: "Ashgabat", region: "Asia", pop: 6430770, area: 488100, iso2: "tm", nato: false, un: true, landlocked: true, lang: "Turkmen", curr: "Manat (TMT)" },
+      { name: "United Arab Emirates", capital: "Abu Dhabi", region: "Asia", pop: 9441129, area: 83600, iso2: "ae", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Dirham (AED)" },
+      { name: "Uzbekistan", capital: "Tashkent", region: "Asia", pop: 36024946, area: 447400, iso2: "uz", nato: false, un: true, landlocked: true, lang: "Uzbek", curr: "Som (UZS)" },
+      { name: "Vietnam", capital: "Hanoi", region: "Asia", pop: 98186856, area: 331212, iso2: "vn", nato: false, un: true, landlocked: false, lang: "Vietnamese", curr: "Dong (VND)" },
+      { name: "Yemen", capital: "Sana'a", region: "Asia", pop: 33696614, area: 527968, iso2: "ye", nato: false, un: true, landlocked: false, lang: "Arabic", curr: "Rial (YER)" },
+
+      // OCEANIA (14)
+      { name: "Australia", capital: "Canberra", region: "Oceania", pop: 26008300, area: 7692024, iso2: "au", nato: false, un: true, landlocked: false, lang: "English", curr: "AUD" },
+      { name: "Fiji", capital: "Suva", region: "Oceania", pop: 929766, area: 18274, iso2: "fj", nato: false, un: true, landlocked: false, lang: "English, Fijian", curr: "FJD" },
+      { name: "Kiribati", capital: "Tarawa", region: "Oceania", pop: 131232, area: 811, iso2: "ki", nato: false, un: true, landlocked: false, lang: "English, Gilbertese", curr: "AUD" },
+      { name: "Marshall Islands", capital: "Majuro", region: "Oceania", pop: 41569, area: 181, iso2: "mh", nato: false, un: true, landlocked: false, lang: "Marshallese, English", curr: "USD" },
+      { name: "Micronesia", capital: "Palikir", region: "Oceania", pop: 114164, area: 702, iso2: "fm", nato: false, un: true, landlocked: false, lang: "English", curr: "USD" },
+      { name: "Nauru", capital: "Yaren", region: "Oceania", pop: 12668, area: 21, iso2: "nr", nato: false, un: true, landlocked: false, lang: "Nauruan, English", curr: "AUD" },
+      { name: "New Zealand", capital: "Wellington", region: "Oceania", pop: 5124100, area: 270467, iso2: "nz", nato: false, un: true, landlocked: false, lang: "English, Maori", curr: "NZD" },
+      { name: "Palau", capital: "Ngerulmud", region: "Oceania", pop: 18055, area: 459, iso2: "pw", nato: false, un: true, landlocked: false, lang: "Palauan, English", curr: "USD" },
+      { name: "Papua New Guinea", capital: "Port Moresby", region: "Oceania", pop: 10142619, area: 462840, iso2: "pg", nato: false, un: true, landlocked: false, lang: "English, Tok Pisin", curr: "PGK" },
+      { name: "Samoa", capital: "Apia", region: "Oceania", pop: 222382, area: 2842, iso2: "ws", nato: false, un: true, landlocked: false, lang: "Samoan, English", curr: "WST" },
+      { name: "Solomon Islands", capital: "Honiara", region: "Oceania", pop: 724273, area: 28896, iso2: "sb", nato: false, un: true, landlocked: false, lang: "English", curr: "SBD" },
+      { name: "Tonga", capital: "Nuku'alofa", region: "Oceania", pop: 106858, area: 747, iso2: "to", nato: false, un: true, landlocked: false, lang: "Tongan, English", curr: "TOP" },
+      { name: "Tuvalu", capital: "Funafuti", region: "Oceania", pop: 11312, area: 26, iso2: "tv", nato: false, un: true, landlocked: false, lang: "Tuvaluan, English", curr: "AUD" },
+      { name: "Vanuatu", capital: "Port Vila", region: "Oceania", pop: 326740, area: 12189, iso2: "vu", nato: false, un: true, landlocked: false, lang: "Bislama, French, English", curr: "VUV" }
+    ];
+
+    // App State
+    let filteredData = [...countriesData];
+    let currentPage = 1;
+    let viewMode = 'grid';
+    let filterNatoOnly = false;
+    let filterUnOnly = false;
+    let filterLandlockedOnly = false;
+
+    // DOM Elements
+    const searchInput = document.getElementById('searchInput');
+    const regionFilter = document.getElementById('regionFilter');
+    const sortBy = document.getElementById('sortBy');
+    const pageSizeSelect = document.getElementById('pageSize');
+    const gridContainer = document.getElementById('gridContainer');
+    const tableContainer = document.getElementById('tableContainer');
+    const tableBody = document.getElementById('tableBody');
+    const resultsCount = document.getElementById('resultsCount');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const pageIndicator = document.getElementById('pageIndicator');
+    const detailModal = document.getElementById('detailModal');
+
+    // Quick Chips
+    const natoChip = document.getElementById('natoChip');
+    const unChip = document.getElementById('unChip');
+    const landlockedChip = document.getElementById('landlockedChip');
+    const resetChip = document.getElementById('resetChip');
+
+    // Init Application
+    function init() {
+      setupEventListeners();
+      applyFilters();
+    }
+
+    function setupEventListeners() {
+      searchInput.addEventListener('input', applyFilters);
+      regionFilter.addEventListener('change', applyFilters);
+      sortBy.addEventListener('change', applyFilters);
+      pageSizeSelect.addEventListener('change', () => { currentPage = 1; render(); });
+
+      document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        document.body.classList.toggle('light-theme');
+      });
+
+      document.getElementById('gridViewBtn').addEventListener('click', () => {
+        viewMode = 'grid';
+        gridContainer.style.display = 'grid';
+        tableContainer.style.display = 'none';
+      });
+
+      document.getElementById('tableViewBtn').addEventListener('click', () => {
+        viewMode = 'table';
+        gridContainer.style.display = 'none';
+        tableContainer.style.display = 'table';
+      });
+
+      // Quick Filter Buttons
+      natoChip.addEventListener('click', () => {
+        filterNatoOnly = !filterNatoOnly;
+        natoChip.classList.toggle('active', filterNatoOnly);
+        applyFilters();
+      });
+
+      unChip.addEventListener('click', () => {
+        filterUnOnly = !filterUnOnly;
+        unChip.classList.toggle('active', filterUnOnly);
+        applyFilters();
+      });
+
+      landlockedChip.addEventListener('click', () => {
+        filterLandlockedOnly = !filterLandlockedOnly;
+        landlockedChip.classList.toggle('active', filterLandlockedOnly);
+        applyFilters();
+      });
+
+      resetChip.addEventListener('click', () => {
+        filterNatoOnly = false;
+        filterUnOnly = false;
+        filterLandlockedOnly = false;
+        natoChip.classList.remove('active');
+        unChip.classList.remove('active');
+        landlockedChip.classList.remove('active');
+        searchInput.value = '';
+        regionFilter.value = 'All';
+        sortBy.value = 'name-asc';
+        applyFilters();
+      });
+
+      // Pagination Controls
+      prevPageBtn.addEventListener('click', () => {
+        if (currentPage > 1) { currentPage--; render(); }
+      });
+
+      nextPageBtn.addEventListener('click', () => {
+        const pageSize = parseInt(pageSizeSelect.value);
+        if (currentPage * pageSize < filteredData.length) { currentPage++; render(); }
+      });
+
+      // Modal Close
+      document.getElementById('modalCloseBtn').addEventListener('click', () => {
+        detailModal.classList.remove('active');
+      });
+      detailModal.addEventListener('click', (e) => {
+        if (e.target === detailModal) detailModal.classList.remove('active');
+      });
+    }
+
+    function applyFilters() {
+      const query = searchInput.value.toLowerCase().trim();
+      const selectedRegion = regionFilter.value;
+      const sortVal = sortBy.value;
+
+      filteredData = countriesData.filter(c => {
+        const matchesQuery = c.name.toLowerCase().includes(query) || c.capital.toLowerCase().includes(query) || c.iso2.includes(query);
+        const matchesRegion = selectedRegion === 'All' || c.region === selectedRegion;
+        const matchesNato = !filterNatoOnly || c.nato;
+        const matchesUn = !filterUnOnly || c.un;
+        const matchesLandlocked = !filterLandlockedOnly || c.landlocked;
+        return matchesQuery && matchesRegion && matchesNato && matchesUn && matchesLandlocked;
+      });
+
+      // Sorting
+      filteredData.sort((a, b) => {
+        if (sortVal === 'name-asc') return a.name.localeCompare(b.name);
+        if (sortVal === 'name-desc') return b.name.localeCompare(a.name);
+        if (sortVal === 'pop-desc') return b.pop - a.pop;
+        if (sortVal === 'area-desc') return b.area - a.area;
+      });
+
+      currentPage = 1;
+      render();
+    }
+
+    function render() {
+      const pageSize = parseInt(pageSizeSelect.value);
+      const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
+      const startIdx = (currentPage - 1) * pageSize;
+      const paginatedData = filteredData.slice(startIdx, startIdx + pageSize);
+
+      resultsCount.textContent = `Showing ${filteredData.length} of ${countriesData.length} countries`;
+      pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+      prevPageBtn.disabled = currentPage === 1;
+      nextPageBtn.disabled = currentPage >= totalPages;
+
+      // Render Grid
+      gridContainer.innerHTML = '';
+      paginatedData.forEach(c => {
+        const flagUrl = `https://flagcdn.com/w320/${c.iso2}.png`;
+        const card = document.createElement('div');
+        card.className = 'country-card';
+        card.innerHTML = `
+          <div class="flag-box">
+            <img src="${flagUrl}" alt="${c.name} Flag" loading="lazy">
+            ${c.nato ? '<span class="nato-badge"><i class="fa-solid fa-shield-halved"></i> NATO</span>' : ''}
+          </div>
+          <div class="card-info">
+            <h2>${c.name}</h2>
+            <p>Capital: <strong>${c.capital}</strong></p>
+            <p>Region: <strong>${c.region}</strong></p>
+            <p>Population: <strong>${c.pop.toLocaleString()}</strong></p>
+          </div>
+        `;
+        card.addEventListener('click', () => openModal(c));
+        gridContainer.appendChild(card);
+      });
+
+      // Render Table
+      tableBody.innerHTML = '';
+      paginatedData.forEach(c => {
+        const flagUrl = `https://flagcdn.com/w40/${c.iso2}.png`;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><img src="${flagUrl}" class="table-flag" alt=""> <strong>${c.name}</strong></td>
+          <td>${c.capital}</td>
+          <td>${c.region}</td>
+          <td>${c.pop.toLocaleString()}</td>
+          <td>${c.area.toLocaleString()}</td>
+          <td>${c.nato ? '<span class="nato-badge" style="position:static;"><i class="fa-solid fa-shield-halved"></i> NATO</span>' : '-'}</td>
+        `;
+        row.addEventListener('click', () => openModal(c));
+        tableBody.appendChild(row);
+      });
+    }
+
+    function openModal(c) {
+      document.getElementById('modalFlag').src = `https://flagcdn.com/w640/${c.iso2}.png`;
+      document.getElementById('modalName').textContent = c.name;
+      document.getElementById('modalCapital').textContent = c.capital;
+      document.getElementById('modalRegion').textContent = c.region;
+      document.getElementById('modalPopulation').textContent = c.pop.toLocaleString();
+      document.getElementById('modalArea').textContent = `${c.area.toLocaleString()} km²`;
+      document.getElementById('modalLanguages').textContent = c.lang;
+      document.getElementById('modalCurrency').textContent = c.curr;
+      document.getElementById('modalIso').textContent = c.iso2.toUpperCase();
+      document.getElementById('modalUnStatus').textContent = c.un ? "Full UN Member State" : "UN General Assembly Observer";
+      
+      const natoBadge = document.getElementById('modalNatoBadge');
+      if(c.nato) {
+        natoBadge.style.display = 'inline-flex';
+      } else {
+        natoBadge.style.display = 'none';
+      }
+
+      detailModal.classList.add('active');
+    }
+
+    // Launch App
+    init();
+  </script>
+</body>
+</html>
